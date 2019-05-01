@@ -9,6 +9,7 @@ const Tag = require("../../models/Tag");
 // @access  Public
 router.get("/", (req, res) => {
   Tag.find()
+    .select("_id name")
     .exec()
     .then(tags => res.status(200).json(tags))
     .catch(err => res.status(500).json({ error: err }));
@@ -24,7 +25,7 @@ router.post("/", checkAuth, (req, res) => {
 
   newTag
     .save()
-    .then(tag => res.json(tag))
+    .then(tag => res.json({ msg: "Tag added successfully" }))
     .catch(err => res.status(500).json({ error: err }));
 });
 
@@ -33,8 +34,13 @@ router.post("/", checkAuth, (req, res) => {
 // @access  Private
 router.delete("/:id", checkAuth, (req, res) => {
   Tag.findById(req.params.id)
-    .then(tag => tag.remove().then(() => res.json({ success: true })))
-    .catch(err => res.status(404).json({ success: false }));
+    .then(tag =>
+      tag
+        .remove()
+        .then(() => res.json({ msg: "Tag deleted successfully" }))
+        .catch(err => res.status(500).json({ error: err }))
+    )
+    .catch(err => res.status(404).json({ error: err }));
 });
 
 module.exports = router;

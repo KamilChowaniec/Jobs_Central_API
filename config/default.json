@@ -1,0 +1,4 @@
+{
+  "mongoURI": "mongodb+srv://jobs_central:PASSWORD@cluster0-gt6ce.mongodb.net/test?retryWrites=true",
+  "jwtSecret": "secret"
+}

@@ -1,8 +1,32 @@
 const express = require("express");
 const router = express.Router();
-const checkAuth = require("../../middleware/checkAuth");
 
+const checkAuth = require("../../middleware/checkAuth");
 const JobOffer = require("../../models/JobOffer");
+
+const multer = require("multer");
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "./uploads");
+  },
+  filename: (req, file, cb) => {
+    cb(null, new Date().toISOString() + file.originalname);
+  }
+});
+const fileFilter = (req, file, cb) => {
+  if (
+    file.mimetype === "image/png" ||
+    file.mimetype === "image/jpg" ||
+    file.mimetype === "image/jpeg"
+  )
+    cb(null, true);
+  else cb(new Error("File type not allowed"), false);
+};
+const upload = multer({
+  storage,
+  limits: { fileSize: 1024 * 1024 * 2 },
+  fileFilter
+});
 
 // @route   GET api/jobOffers
 // @desc    Get all JobOffers
@@ -32,15 +56,26 @@ router.get("/:id", (req, res) => {
 // @route   POST api/jobOffers
 // @desc    Add new JobOffers
 // @access  Private
-router.post("/", checkAuth, (req, res) => {
+router.post("/", checkAuth, upload.single("logo"), (req, res) => {
   const newJobOffer = new JobOffer({
-    name: req.body.name,
-    description: req.body.description
+    authorId: req.user.id,
+    title: req.body.title,
+    logo: req.file.path,
+    position: req.body.position,
+    firm: req.body.firm,
+    address: {
+      city: req.body.city,
+      street: req.body.street,
+      number: req.body.number
+    },
+    dimensions: req.body.dimensions,
+    description: req.body.description,
+    tags: req.body.tags.split(" ")
   });
 
   newJobOffer
     .save()
-    .then(jobOffer => res.json(jobOffer))
+    .then(jobOffer => res.json({ msg: "Job Offer added successfully" }))
     .catch(err => res.status(500).json({ error: err }));
 });
 
@@ -60,7 +95,7 @@ router.patch("/:id", checkAuth, (req, res) => {
         }
         JobOffer.update({ _id: req.params.id }, { $set: updateOps })
           .exec()
-          .then(result => res.status(200).json(result))
+          .then(result => res.status(200).json({ msg: "Updated successfully" }))
           .catch(err => res.status(500).json({ error: err }));
       } else
         res.status(404).json({ msg: "No valid entry found for provided ID" });

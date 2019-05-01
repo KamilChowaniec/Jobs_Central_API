@@ -5,7 +5,7 @@ const UserSchema = new Schema({
   firstName: {
     type: String,
     required: true
-  },  
+  },
   lastName: {
     type: String,
     required: true
@@ -19,7 +19,7 @@ const UserSchema = new Schema({
     type: String,
     required: true
   },
-  register_date:{
+  register_date: {
     type: Date,
     default: Date.now
   }
